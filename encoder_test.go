@@ -6,16 +6,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ftrihard/services"
+	"github.com/ftrihard/service"
 )
 
 func TestEncoder(t *testing.T) {
-	cfg := services.CreateConfig()
+	cfg := service.CreateConfig()
 
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 
-	handler, err := services.New(ctx, next, cfg, "demo-plugin")
+	handler, err := service.New(ctx, next, cfg, "demo-plugin")
 	if err != nil {
 		t.Fatal(err)
 	}
