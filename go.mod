@@ -1,4 +1,4 @@
-module github.com/ftrihard/service1
+module github.com/ftrihard/services
 
 go 1.16
 
