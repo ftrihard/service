@@ -1,9 +1,9 @@
-displayName: Service One
+displayName: Proxy for Assignment
 type: middleware
 
-import: github.com/ftrihard/services-assignment
+import: github.com/ftrihard/service
 
-summary: 'Convert User Id Into JWT'
+summary: 'Convert User Id Into JWT and JWT to User Id'
 
 testData:
   Headers:
