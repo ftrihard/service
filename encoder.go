@@ -1,14 +1,14 @@
 package service
 
 import (
+	"fmt"
 	"time"
 	"context"
 	"net/http"
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
-const APPLICATION_NAME = "Service One"
-const LOGIN_EXPIRATION_DURATION = time.Duration(1) * time.Hour
+const APPLICATION_NAME = "JWT Service"
 const JWT_SIGNATURE_KEY = "the secret of kalimdor"
 
 // Config the plugin configuration.
@@ -27,7 +27,7 @@ type Encoder struct {
 
 type Claim struct {
 	jwt.StandardClaims
-	UserId string
+	UserId string `json:"UserId"`
 }
 
 // New created a new encoder plugin.
@@ -40,19 +40,43 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (e *Encoder) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	claim := Claim {
-		StandardClaims: jwt.StandardClaims{
-			Issuer:    APPLICATION_NAME,
-			ExpiresAt: time.Now().Add(LOGIN_EXPIRATION_DURATION).Unix(),
-		},
-		UserId: req.Header.Get("User-Id"),
+	if req.Header.Get("X-Jwt") == "" {
+		claim := Claim {
+			StandardClaims: jwt.StandardClaims{
+				Issuer:    APPLICATION_NAME,
+			},
+			UserId: req.Header.Get("X-User-Id"),
+		}
+		req.Header.Del("X-User-Id")
+		token, err := jwt.NewWithClaims(jwt.SigningMethodHS256,claim).SignedString([]byte(JWT_SIGNATURE_KEY))
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		req.Header.Add("X-Jwt",token)
+	} else {
+		token, err := jwt.Parse(req.Header.Get("X-Jwt"), func(token *jwt.Token) (interface{}, error) {
+			if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Signing method invalid")
+			} else if method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf("Signing method invalid")
+			}
+		
+			return []byte(JWT_SIGNATURE_KEY), nil
+		})
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		req.Header.Del("X-Jwt")
+		req.Header.Add("X-User-Id",claims["UserId"].(string))
 	}
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256,claim).SignedString([]byte(JWT_SIGNATURE_KEY))
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-	req.Header.Set("User-Id",token)
+	
 
 	e.next.ServeHTTP(rw, req)
 }
