@@ -1,5 +1,4 @@
-// Package plugindemo a demo plugin.
-package service1
+package services
 
 import (
 	"time"

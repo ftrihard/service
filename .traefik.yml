@@ -1,7 +1,7 @@
 displayName: Service One
 type: middleware
 
-import: github.com/ftrihard/service1
+import: github.com/ftrihard/services-assignment
 
 summary: 'Convert User Id Into JWT'
 

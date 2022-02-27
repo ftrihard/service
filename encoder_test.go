@@ -1,4 +1,4 @@
-package service1_test
+package services_test
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ftrihard/service1"
+	"github.com/ftrihard/services"
 )
 
 func TestEncoder(t *testing.T) {
-	cfg := service1.CreateConfig()
+	cfg := services.CreateConfig()
 
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 
-	handler, err := service1.New(ctx, next, cfg, "demo-plugin")
+	handler, err := services.New(ctx, next, cfg, "demo-plugin")
 	if err != nil {
 		t.Fatal(err)
 	}
